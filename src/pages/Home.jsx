@@ -43,29 +43,36 @@ function Home() {
     setSelectAll(false);
   };
 
-  const handleAction = async (endpoint, statusUpdate = null) => {
-    const selectedUsers = users.filter((user) => user.selected);
-    const userIds = selectedUsers.map((user) => user.id);
-
-    try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/users/${endpoint}`, {
-        userIds,
-      });
-      if (statusUpdate) {
-        setUsers((prevUsers) =>
-          prevUsers.map((user) =>
-            userIds.includes(user.id) ? { ...user, status: statusUpdate } : user
-          )
-        );
-      } else {
-        setUsers((prevUsers) =>
-          prevUsers.filter((user) => !userIds.includes(user.id))
-        );
+const handleAction = async (endpoint, statusUpdate = null) => {
+  const selectedUsers = users.filter((user) => user.selected);
+  const userIds = selectedUsers.map((user) => user.id);
+  try {
+    await axios.post(`${import.meta.env.VITE_API_URL}/users/${endpoint}`, {
+      userIds,
+    });
+    selectedUsers.forEach((user) => {
+      if (user.email === currentUser) {
+        console.log(`Current user (${currentUser}) is being ${endpoint}`);
+        localStorage.removeItem("userEmail");
+        window.location.href = "/login";
       }
-    } catch (error) {
-      console.error(`Error with ${endpoint} action:`, error);
+    });
+    if (statusUpdate) {
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          userIds.includes(user.id) ? { ...user, status: statusUpdate } : user
+        )
+      );
+    } else {
+      setUsers((prevUsers) =>
+        prevUsers.filter((user) => !userIds.includes(user.id))
+      );
     }
-  };
+
+  } catch (error) {
+    console.error(`Error with ${endpoint} action:`, error);
+  }
+};
   const handleLogout = () => {
     localStorage.removeItem("userEmail");
 
